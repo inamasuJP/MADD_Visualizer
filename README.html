@@ -372,9 +372,32 @@ code {
 <p>This web application visualizes the address of the multiply-add operation of 4D arrays.</p>
 <h2 id="author">Author</h2>
 <p>Hidenari Inamasu</p>
-<h2 id="programs">Programs</h2>
-<h3 id="1-pbl1-52loop">1. PBL1-5_2loop</h3>
-<p>Reduced the number of for loop in PBL1-5 code to 2.</p>
+<h2 id="program-links">Program Links</h2>
+<h3 id="1-pbl1-5original">1. PBL1-5_Original</h3>
+<p>Original C code for PBL1-5.</p>
+<p><a href="pbl1_5_original.html">【Program Link】</a></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span> (K == <span class="hljs-number">1</span> || IM-K+<span class="hljs-number">1</span> == M) { y0 = <span class="hljs-number">0</span>;    x0 = <span class="hljs-number">0</span>;    }
+<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (IM == M)          { y0 = -K/<span class="hljs-number">2</span>; x0 = -K/<span class="hljs-number">2</span>; }
+<span class="hljs-keyword">for</span> (ch=<span class="hljs-number">0</span>;ch&lt;IC*K*K;ch++) { <span class="hljs-comment">/*5x5, 8x3x3*/</span>
+  ic = ch/(K*K);
+  y  = ch%(K*K)/K + y0;
+  x  = ch%(K*K)%K + x0;
+  <span class="hljs-keyword">for</span> (img=<span class="hljs-number">0</span>;img&lt;BATCH;img++) { <span class="hljs-comment">/*100, 100*/</span>
+    <span class="hljs-keyword">for</span> (oc=<span class="hljs-number">0</span>; oc&lt;OC; oc++) {
+      op0 = &amp;i_out[img*M*M*OC+oc*M*M];
+      ip0 = &amp;i_inp[(img*IC+ic)*IM*IM+y*IM+x];
+      <span class="hljs-keyword">float</span> cker = *(<span class="hljs-keyword">float</span>*)&amp;i_ker[oc*IC*K*K+ch];
+      <span class="hljs-keyword">for</span> (rofs=<span class="hljs-number">0</span>;rofs&lt;M;rofs++) { <span class="hljs-comment">/*24, 10*/</span>
+        <span class="hljs-keyword">for</span> (cofs=<span class="hljs-number">0</span>;cofs&lt;M;cofs++) { <span class="hljs-comment">/*24, 10*/</span>
+          <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span>&lt;=rofs+y &amp;&amp; rofs+y&lt;IM &amp;&amp; <span class="hljs-number">0</span>&lt;=cofs+x &amp;&amp; cofs+x&lt;IM)
+            *(<span class="hljs-keyword">float</span>*)&amp;ip0[rofs*IM+cofs] += cker * *(<span class="hljs-keyword">float</span>*)&amp;op0[rofs*M+cofs];
+        }
+      }
+    }
+  }
+</div></code></pre>
+<h3 id="2-pbl1-52loop">2. PBL1-5_2loop</h3>
+<p>Reduced the number of &quot;for&quot; in PBL1-5 code to 2 + 1.</p>
 <p><a href="pbl1_5_2loop.html">【Program Link】</a></p>
 <pre class="hljs"><code><div><span class="hljs-built_in">memset</span>(in0, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(in0[<span class="hljs-number">0</span>])*BATCH*IC*IM*IM);
 <span class="hljs-keyword">if</span> (K == <span class="hljs-number">1</span> || IM-K+<span class="hljs-number">1</span> == M) { y0 = <span class="hljs-number">0</span>;    x0 = <span class="hljs-number">0</span>;    }

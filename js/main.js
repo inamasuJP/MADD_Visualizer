@@ -1,4 +1,5 @@
 /* 2020/10/14 もとのプログラムの操作順を可視化するプログラム */
+/* 2020/10/16 計算順の計算の関数(calc_***();)はcalc.jsに分割した */
 
 const vebose = true;
 
@@ -23,9 +24,9 @@ function init(test){
   ctx2 = canvas2.getContext('2d');
   canvas3 = document.getElementById("canvas3");
   ctx3 = canvas3.getContext('2d');
-  if (canvas1.getContext && canvas2.getContext && canvas3.getContext) move();
+  if (canvas1.getContext && canvas2.getContext && canvas3.getContext) move(test);
   else console.log("Error");
-  document.addEventListener("keydown", KeyDownFunc);
+  document.addEventListener("keydown", {text:test, handleEvent: KeyDownFunc});
   document.addEventListener("keyup", KeyUpFunc);
 }
 function div_add_num(div,name,max){
@@ -45,34 +46,15 @@ function div_add_num(div,name,max){
 function KeyDownFunc(e){
   if (e.keyCode == 37) leftFlg = true;
   else if(e.keyCode == 39) rightFlg = true;
-  move();
+  move(this.text);
 }
 function KeyUpFunc(e){
   if ( e.keyCode == 37 ) leftFlg = false;
   else if(e.keyCode == 39) rightFlg = false;
 }
 
-function calc_2loop(val){
-    /* step is img*ch*mat = BATCH * (IC*K*K) * (M*M*OC)  */
-  val.img = parseInt(step / ((IC*K*K) * (M*M*OC)) );
-  val.ch  = parseInt(step % ((IC*K*K)*(M*M*OC)) / (M*M*OC) );
-  val.mat = parseInt(step % (M*M*OC) );
-
-  let x0, y0;
-  // if (K == 1 || IM-K+1 == M) { y0 = 0; x0 = 0; }
-  // else if (IM == M)          { y0 = parseInt(-K/2); x0 = parseInt(-K/2); }
-  y0 = parseInt(-K/2); x0 = parseInt(-K/2); 
-  val.ic = parseInt( val.ch/(K*K) );
-  val.y = parseInt(val.ch%(K*K)/K) + y0;
-  val.x = parseInt(val.ch%K) + x0;
-
-  val.rofs = parseInt( val.mat / (M*OC) );
-  val.cofs = parseInt( val.mat % (M*OC)/OC );
-  val.oc = parseInt( val.mat % OC );
-
-}
-
-function move() {
+function move(test) {
+  if(test) var func = test;
   let val = { img:0,ch:0,mat:0,ic:0,y:0,x:0,oc:0,rofs:0,cofs:0 };
 
   /* Read HTML input num */
@@ -81,7 +63,8 @@ function move() {
   /* Change address by keyboard input */
   if (leftFlg && 0 < step) step--;
   else if(rightFlg && step < M*M*OC*BATCH*IC*K*K -1) step++;
-  calc_2loop(val);
+  // calc_2loop(val);
+  eval("calc_"+func+"(val)"); // calc.js
 
 
   /* Skip */
@@ -92,9 +75,9 @@ function move() {
       console.log("Reset step: "+step);
     }
     if(vebose) console.log("Skip step: "+step);
-    calc_2loop(val);
+    eval("calc_"+func+"(val)"); // calc.js
   }
-  calc_2loop(val);
+  eval("calc_"+func+"(val)"); // calc.js
   if(vebose)console.log("step:"+step+" img:"+val.img+" ch:"+val.ch+" mat:"+val.mat+" ic:"+val.ic+" y:"+val.y+" x:"+val.x+" oc:"+val.oc+" rofs:"+val.rofs+" cofs:"+val.cofs);
 
   /* Output to HTML input num */
