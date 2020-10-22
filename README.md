@@ -10,7 +10,11 @@ This web application visualizes the address of the multiply-add operation of 4D 
 
 ## Author
 
-Hidenari Inamasu
+Hidenari Inamasu 
+
+## How to use
+
+Access【Program Link】 , and Press the right arrow (→) key.
 
 ## Program Links
 
@@ -45,7 +49,7 @@ for (ch=0;ch<IC*K*K;ch++) { /*5x5, 8x3x3*/
 ### 2. PBL1-5_2loop
 
 - Reduced the number of "for" in PBL1-5 code.
-- Change innermost "for" to OC
+- Changed innermost "for" to OC.
 
 
 [【Program Link】](pbl1_5_2loop.html)
@@ -74,7 +78,7 @@ for (img=0;img<BATCH;img++) { // IMAXの64段やCHIPに展開
 ```
 ### 3. PBL1-5_Stop_ip0
 
-- Fix ip0 address
+- Changed the address order of A to be continuous.
 
 [【Program Link】](pbl1_5_Stop_ip0.html)
 
