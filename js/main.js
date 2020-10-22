@@ -1,15 +1,15 @@
 /* 2020/10/14 もとのプログラムの操作順を可視化するプログラム */
 /* 2020/10/16 計算順の計算の関数(calc_***();)はcalc.jsに分割した */
 
-const vebose = true;
+const vebose = false;
 
 let canvas1, ctx1;
 let canvas2, ctx2;
 let canvas3, ctx3;
 let div1;
 
-const BATCH = 5, IC = 5, IM = 4, OC = 2, M = 4; K = 3;
-// const BATCH = 10, IC = 9, IM =12, OC = 32, M = 12; K = 3; // mnist
+// const BATCH = 5, IC = 5, IM = 4, OC = 2, M = 4; K = 3;
+const BATCH = 1, IC = 9, IM =12, OC = 32, M = 12; K = 3; // mnist
 let leftFlg = false, rightFlg = false;
 let step = 0; // 0 <= step < M*M*OC*BATCH*IC*K*K - 1
 
@@ -55,7 +55,7 @@ function KeyUpFunc(e){
 
 function move(test) {
   if(test) var func = test;
-  let val = { img:0,ch:0,mat:0,ic:0,y:0,x:0,oc:0,rofs:0,cofs:0 };
+  let val = { skip:false,img:0,ic:0,y:0,x:0,oc:0,rofs:0,cofs:0 };
 
   /* Read HTML input num */
   step = document.getElementById("num_step").value;
@@ -65,16 +65,15 @@ function move(test) {
   else if(rightFlg && step < M*M*OC*BATCH*IC*K*K -1) step++;
   // calc_2loop(val);
   eval("calc_"+func+"(val)"); // calc.js
-
-
   /* Skip */
-  while( val.ic<0 || val.oc<0 || val.rofs+val.y < 0 || IM <= val.rofs+val.y || val.cofs+val.x < 0 || IM <= val.cofs+val.x ){
+  /*while( val.ic<0 || val.oc<0 || val.rofs+val.y < 0 || IM <= val.rofs+val.y || val.cofs+val.x < 0 || IM <= val.cofs+val.x ){ */
+  while(val.skip){
     step++;
     if(M*M*OC*BATCH*IC*K*K -1 < step) {
       step = 0;
       console.log("Reset step: "+step);
     }
-    if(vebose) console.log("Skip step: "+step);
+    if(vebose)console.log("Skip step: "+step);
     eval("calc_"+func+"(val)"); // calc.js
   }
   eval("calc_"+func+"(val)"); // calc.js
@@ -84,9 +83,10 @@ function move(test) {
   document.getElementById("num_step").value = step;
 
   /* draw() */
+  let x0 = -1; y0 = -1;
   let ip0 =  parseInt( val.img*IC*IM*IM + val.ic*IM*IM + (val.y+val.rofs)*IM + (val.x+val.cofs) );
   let out0 = parseInt( val.img*M*M*OC   + val.oc*M*M   + val.rofs*M          + val.cofs);
-  let ker = parseInt(val.oc*IC*K*K+val.ch);
+  let ker = parseInt(val.oc*IC*K*K+ (K*K*val.ic + K*(val.y-y0) + val.x-x0));
   if( (val.ic<0 || val.oc<0 ) || (val.rofs+val.y < 0 || IM < val.rofs+val.y || val.cofs+val.x < 0 || IM < val.cofs+val.x) ) console.log("Error");
   else draw(ip0,ker,out0);
 }

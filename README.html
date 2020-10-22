@@ -365,7 +365,7 @@ code {
           : 'default'
     });
   </script>
-<h1 id="maddvisualizer">MADD_Visualizer</h1>
+<h1 id="maddaddressviewer">MADD_addressViewer</h1>
 <p>Visualize the address of the multiply-add operation.</p>
 <h2 id="description">Description</h2>
 <p>To improve performance in IMAX, we need to reduce transfers between main memory and local memory(LMM).</p>
@@ -374,7 +374,9 @@ code {
 <p>Hidenari Inamasu</p>
 <h2 id="program-links">Program Links</h2>
 <h3 id="1-pbl1-5original">1. PBL1-5_Original</h3>
-<p>Original C code for PBL1-5.</p>
+<ul>
+<li>Original C code for PBL1-5.</li>
+</ul>
 <p><a href="pbl1_5_original.html">【Program Link】</a></p>
 <pre class="hljs"><code><div><span class="hljs-keyword">if</span> (K == <span class="hljs-number">1</span> || IM-K+<span class="hljs-number">1</span> == M) { y0 = <span class="hljs-number">0</span>;    x0 = <span class="hljs-number">0</span>;    }
 <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (IM == M)          { y0 = -K/<span class="hljs-number">2</span>; x0 = -K/<span class="hljs-number">2</span>; }
@@ -397,7 +399,10 @@ code {
   }
 </div></code></pre>
 <h3 id="2-pbl1-52loop">2. PBL1-5_2loop</h3>
-<p>Reduced the number of &quot;for&quot; in PBL1-5 code to 2 + 1.</p>
+<ul>
+<li>Reduced the number of &quot;for&quot; in PBL1-5 code.</li>
+<li>Change innermost &quot;for&quot; to OC</li>
+</ul>
 <p><a href="pbl1_5_2loop.html">【Program Link】</a></p>
 <pre class="hljs"><code><div><span class="hljs-built_in">memset</span>(in0, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(in0[<span class="hljs-number">0</span>])*BATCH*IC*IM*IM);
 <span class="hljs-keyword">if</span> (K == <span class="hljs-number">1</span> || IM-K+<span class="hljs-number">1</span> == M) { y0 = <span class="hljs-number">0</span>;    x0 = <span class="hljs-number">0</span>;    }
@@ -408,10 +413,10 @@ code {
     ic = ch/(K*K);
     y  = ch%(K*K)/K + y0;
     x  = ch%(K*K)%K + x0;
-    <span class="hljs-keyword">for</span> (mat=<span class="hljs-number">0</span>;mat&lt;OC*M*M;mat++){ <span class="hljs-comment">// LOOP0</span>
-      oc   = mat / (M*M);
-      rofs = mat % (M*M) / M;
-      cofs = mat % M;
+    <span class="hljs-keyword">for</span> (mat=<span class="hljs-number">0</span>;mat&lt;M*M*OC;mat++){ <span class="hljs-comment">// LOOP0</span>
+      rofs = mat / (M*OC);
+      cofs = mat % (M*OC) / OC;
+      oc   = mat &amp; M;
 
       <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span>&lt;=rofs+y &amp;&amp; rofs+y&lt;IM &amp;&amp; <span class="hljs-number">0</span>&lt;=cofs+x &amp;&amp; cofs+x&lt;IM){
         ip0 =  &amp;in0[img*IC*IM*IM + ic*IM*IM + (y+rofs)*IM + x+cofs];
@@ -419,6 +424,31 @@ code {
         <span class="hljs-keyword">float</span> cker = *(<span class="hljs-keyword">float</span>*)&amp;ker[oc*IC*K*K+ch];
         *(<span class="hljs-keyword">float</span>*)ip0 += cker * *(<span class="hljs-keyword">float</span>*)op0;
 } } } }
+</div></code></pre>
+<h3 id="3-pbl1-5stopip0">3. PBL1-5_Stop_ip0</h3>
+<ul>
+<li>Fix ip0 address</li>
+</ul>
+<p><a href="pbl1_5_Stop_ip0.html">【Program Link】</a></p>
+<pre class="hljs"><code><div><span class="hljs-built_in">memset</span>(in0, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(in0[<span class="hljs-number">0</span>])*BATCH*IC*IM*IM);
+<span class="hljs-keyword">if</span> (K == <span class="hljs-number">1</span> || IM-K+<span class="hljs-number">1</span> == M) { y0 = <span class="hljs-number">0</span>;    x0 = <span class="hljs-number">0</span>;    }
+<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (IM == M)          { y0 = -K/<span class="hljs-number">2</span>; x0 = -K/<span class="hljs-number">2</span>; }
+
+<span class="hljs-keyword">for</span> (img=<span class="hljs-number">0</span>;img&lt;BATCH;img++) { <span class="hljs-comment">// IMAXの64段やCHIPに展開</span>
+  <span class="hljs-keyword">for</span> (ic=<span class="hljs-number">0</span>;ic&lt;IC;ic++) {
+    <span class="hljs-keyword">for</span> (Ty=<span class="hljs-number">0</span>;Ty&lt;IM;Ty++) { <span class="hljs-comment">// Ty = rofs + y</span>
+      <span class="hljs-keyword">for</span> (Tx=<span class="hljs-number">0</span>;Tx&lt;IM;Tx++) { <span class="hljs-comment">// Tx = cofs + x</span>
+        <span class="hljs-keyword">for</span> (y=y0;y&lt;=K+y0;y++) { 
+          <span class="hljs-keyword">for</span> (x=x0;x&lt;=K+x0;x++) {
+              <span class="hljs-keyword">for</span> (oc=<span class="hljs-number">0</span>; oc&lt;OC; oc++) {
+                rofs = Ty - y;
+                cofs = Tx - x;
+                <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span>&lt;=rofs &amp;&amp; rofs&lt;IM &amp;&amp; <span class="hljs-number">0</span>&lt;=cofs &amp;&amp; cofs&lt;IM){
+                  ip0 =  &amp;in0[img*IC*IM*IM + ic*IM*IM + Ty*IM + Tx];
+                  op0 = &amp;out0[img*M*M*OC   + oc*M*M   + rofs*M      + cofs];
+                  <span class="hljs-keyword">float</span> cker = *(<span class="hljs-keyword">float</span>*)&amp;ker[oc*IC*K*K+ch];
+                  *(<span class="hljs-keyword">float</span>*)ip0 += cker * *(<span class="hljs-keyword">float</span>*)op0;
+} } } } } } } } }
 </div></code></pre>
 
 </body>
